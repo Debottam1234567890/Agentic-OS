@@ -7,7 +7,7 @@ import pyfiglet
 
 # Textual Imports
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Header, Footer, Static, Input, ProgressBar
 from textual import work
 from rich.console import Group
@@ -59,10 +59,14 @@ class KernelOS(App):
         layout: horizontal;
         height: 1fr;
     }
-    #main_chat {
+    #chat_scroll {
         width: 3fr;
         height: 1fr;
         border: double #00FFCC;
+        background: #0A0A1A;
+    }
+    #main_chat {
+        height: auto;
         padding: 1;
         background: #0A0A1A;
     }
@@ -96,7 +100,8 @@ class KernelOS(App):
         yield Header(show_clock=True)
         yield Static("Warning! Your CPU is over 85%!", id="cpu_alert")
         with Horizontal(id="body"):
-            yield Static(id="main_chat")
+            with VerticalScroll(id="chat_scroll"):
+                yield Static(id="main_chat")
             with Vertical(id="sidebar"):
                 yield Static("CPU Usage", id="cpu_usage")
                 yield ProgressBar(total=100, show_eta=False, id="cpu_bar")
@@ -170,9 +175,11 @@ class KernelOS(App):
             alert.remove_class("visible")
 
     def update_chat_panel(self):
+        chat_scroll = self.query_one("#chat_scroll", VerticalScroll)
         main_chat = self.query_one("#main_chat", Static)
-        main_chat.border_title = f"[{self.agent_color}]{self.agent_title}[/{self.agent_color}]"
-        main_chat.styles.border = ("double", self.agent_color)
+        
+        chat_scroll.border_title = f"[{self.agent_color}]{self.agent_title}[/{self.agent_color}]"
+        chat_scroll.styles.border = ("double", self.agent_color)
         
         if self.agent_title in ["Conversational Agent", "Web Agent"]:
             chat_content = Group(f"[{self.agent_color}]{self.last_command}[/{self.agent_color}]", RichMarkdown(self.last_output))
@@ -182,6 +189,7 @@ class KernelOS(App):
             main_chat.update(chat_content)
         
         self.title = os.getcwd()
+        self.call_after_refresh(chat_scroll.scroll_end, animate=False)
 
     async def on_input_submitted(self, event: Input.Submitted):
         user_input = event.value.strip()
@@ -238,7 +246,7 @@ class KernelOS(App):
             self.last_output = ""
             self.call_from_thread(self.update_chat_panel)
             
-            res = stream_conversational_agent(user_input, client, self._append_output)
+            res = stream_conversational_agent(user_input, client, self._append_output, self.system_memory)
             command_run = res["command"]
             stdout_val = res["output"]
             
