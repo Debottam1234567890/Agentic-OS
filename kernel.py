@@ -286,6 +286,17 @@ class KernelOS(App):
 if __name__ == "__main__":
     from rich.console import Console
     console = Console()
+
+    # Pre-boot: Force ChromaDB's ONNX model download in the main thread.
+    # This MUST happen before app.run() to avoid the macOS fds_to_keep crash.
+    print("Booting Knowledge Vault...")
+    # pyrefly: ignore [missing-import]
+    import chromadb
+    _client = chromadb.PersistentClient(path="./physics_db")
+    _collection = _client.get_or_create_collection(name="physics_vault")
+    _collection.upsert(documents=["warmup"], ids=["__warmup__"])
+    print("Knowledge Vault online.")
+
     app = KernelOS()
     app.run()
     console.print("\n[dim yellow]Shutting down the system! Goodbye![/dim yellow]")

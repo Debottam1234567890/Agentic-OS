@@ -4,3 +4,5 @@ __pycache__/
 .os_memory.json
 api.txt
 .DS_Store
+.ingested.json
+physics_db/
