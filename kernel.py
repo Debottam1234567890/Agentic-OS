@@ -113,6 +113,7 @@ class KernelOS(App):
         yield Footer()
 
     def on_mount(self):
+        os.makedirs("sandbox", exist_ok=True)
         self.title = os.getcwd()
         self.system_status = {"cpu_alert": False, "last_recorded_cpu": 0, "last_recorded_ram": 0}
         
@@ -225,7 +226,7 @@ class KernelOS(App):
         returncode = 0
 
         if "TERMINAL" in intent_category:
-            res = execute_terminal_agent(user_input, current_dir, visible_files, recent_history, client)
+            res = execute_terminal_agent(user_input, current_dir, visible_files, recent_history, client, self._append_output)
             self.agent_title = res["agent_title"]
             self.agent_color = res["agent_color"]
             self.last_command = res["command"]
