@@ -6,4 +6,5 @@ api.txt
 .DS_Store
 .ingested.json
 physics_db/
-sandbox/
+sandbox/.agent_workspace/
+*.log
