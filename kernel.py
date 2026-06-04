@@ -1,4 +1,5 @@
 # Imports
+from browser.engine import fetch_and_clean_html
 import json
 import os
 from datetime import datetime
@@ -22,9 +23,25 @@ from logic_router import route_intent
 from agents.terminal_agent import execute_terminal_agent
 from agents.conversational_agent import stream_conversational_agent
 from agents.web_agent import stream_web_agent
+from browser.viewer_screen import BrowserScreen
+from media_player.audio_controller import AudioController
+from media_player.widget import LoFiWidget
+from voice.microphone_daemon import record_scratch_audio
+from voice.transcriber import transcribe_wav
+from kanban.board_layout import KanbanScreen
+from neural_find.searcher import semantic_search
+
+def get_api_key():
+    key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if not key:
+        api_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api.txt")
+        if os.path.exists(api_path):
+            with open(api_path, "r") as f:
+                key = f.readline().strip()
+    return key
 
 client = OpenRouter(
-    api_key=os.environ.get("OPENROUTER_API_KEY", ""),
+    api_key=get_api_key(),
     server_url="https://ai.hackclub.com/proxy/v1"
 )
 
@@ -32,6 +49,7 @@ BASE_DIR = os.getcwd()
 MEMORY_FILE = os.path.join(BASE_DIR, ".os_memory.json")
 
 class KernelOS(App):
+    SCREENS = {"kanban": KanbanScreen, "browser": BrowserScreen}
     CSS = """
     Screen {
         layout: vertical;
@@ -121,6 +139,9 @@ class KernelOS(App):
     Button {
         margin: 0 1;
     }
+    LoFiWidget { border-top: solid #00FFCC; margin-top: 1; padding: 1; height: auto; }
+    #lofi_controls { height: auto; align: center middle; margin-top: 1; }
+    #lofi_header { text-align: center; }
     """
 
     def compose(self) -> ComposeResult:
@@ -149,7 +170,8 @@ class KernelOS(App):
         self.agent_title = "System Boot"
         self.agent_color = "#00FFCC"
         self.last_command = "System Initialization."
-        
+        self.audio_system = AudioController()
+
         ascii_banner = pyfiglet.figlet_format("AGENTIC OS", font="slant")
         escaped_banner = escape(ascii_banner)
         self.last_output = f"[bold #00FFCC]{escaped_banner}[/bold #00FFCC]\n"
@@ -230,6 +252,11 @@ class KernelOS(App):
         
         termination_keywords = ["exit", "quit", "bye", "terminate", "shutdown"]
         if user_input.lower() in termination_keywords:
+            try:
+                for static in self.query("Static"):
+                    static.update("")
+            except Exception:
+                pass
             self.exit()
             return
 
@@ -253,6 +280,52 @@ class KernelOS(App):
             self.last_output += f"\n[dim cyan]> *Generating a challenging quiz about {topic}...*[/dim cyan]\n"
             self.update_chat_panel()
             self.generate_quiz(topic)
+            return
+
+        elif user_input.startswith("browse "):
+            url = user_input[7:].strip()
+            self.agent_title = "Web Navigator"
+            self.agent_color = "#00FFCC"
+            self.last_command = user_input
+            self.last_output = f"[dim cyan]> *Fetching and stripping {url}...*[/dim cyan]\n"
+            self.update_chat_panel()
+            self.launch_browser(url)
+            return
+
+        elif user_input.lower() == "lofi start":
+            if not self.query("LoFiWidget"):
+                self.query_one("#sidebar").mount(LoFiWidget())
+            self.agent_title = "Media Controller"
+            self.agent_color = "#00FFCC"
+            self.last_command = user_input
+            self.last_output = "[dim cyan]> *Mounting Lo-Fi subsystem...*[/dim cyan]\n"
+            self.update_chat_panel()
+            self.audio_system.play()
+            return
+        
+        elif user_input.lower() == "tasks":
+            self.push_screen(KanbanScreen())
+            return
+
+        elif user_input.lower() == "listen":
+            self.agent_title = "Voice Agent"
+            self.agent_color = "#FF0055"
+            self.last_command = "Voice Input Mode"
+            self.last_output = "\n[bold red]🎤 Listening for 5 seconds...[/bold red]\n"
+            self.update_chat_panel()
+            self.run_voice_pipeline()
+            return
+
+        elif user_input.lower().startswith("search "):
+            query = user_input[7:].strip()
+            self.agent_title = "Local File Search"
+            self.agent_color = "#FFFF00"
+            self.last_command = user_input
+            self.last_output = f"[bold yellow]🔍 Searching database for:[/bold yellow] {query}...\n"
+            self.update_chat_panel()
+            results_text = semantic_search(query)
+            self.last_output = f"\n{results_text}\n"
+            self.update_chat_panel()
             return
 
         if user_input:
@@ -299,6 +372,13 @@ class KernelOS(App):
             self.update_chat_panel()
             
         self.call_from_thread(display_success)
+    
+    @work(thread=True)
+    def launch_browser(self, url: str):
+        markdown_string = fetch_and_clean_html(url, client)
+        def mount_screen():
+            self.push_screen(BrowserScreen(markdown_string))
+        self.call_from_thread(mount_screen)
 
     def _set_output(self, text):
         self.last_output = text
@@ -384,6 +464,18 @@ class KernelOS(App):
                 
             self.last_output += result_msg
             self.update_chat_panel()
+
+    @on(Button.Pressed, "#lofi_play")
+    def resume_lofi(self, event): 
+        self.audio_system.play()
+    
+    @on(Button.Pressed, "#lofi_pause")
+    def pause_lofi(self, event): 
+        self.audio_system.pause()
+    
+    @on(Button.Pressed, "#lofi_stop")
+    def stop_lofi(self, event):
+        self.audio_system.stop()
 
     @work(thread=True)
     def fetch_news(self):
@@ -559,6 +651,22 @@ class KernelOS(App):
             json.dump(self.system_memory, file, indent=4)
             
         self.call_from_thread(self.update_chat_panel)
+    
+    @work(thread=True)
+    def run_voice_pipeline(self):
+        try:
+            wav_path = record_scratch_audio()
+            text_result = transcribe_wav(wav_path)
+            def update_ui():
+                self.last_output = f"\n[bold green]✔ Transcribed:[/bold green] {text_result}\n"
+                self.update_chat_panel()
+                self.query_one(Input).value = text_result
+            self.call_from_thread(update_ui)
+        except Exception as e:
+            def show_error():
+                self.last_output = f"\n[bold red]✘ Voice Error:[/bold red] {e}\n"
+                self.update_chat_panel()
+            self.call_from_thread(show_error)
 
 if __name__ == "__main__":
     from rich.console import Console
@@ -576,4 +684,4 @@ if __name__ == "__main__":
 
     app = KernelOS()
     app.run()
-    console.print("\n[dim yellow]Shutting down the system! Goodbye![/dim yellow]")
+    console.print("\n[dim cyan]System successfully terminated. Goodbye![/dim cyan]")

@@ -1,10 +1,35 @@
+# Python
 venv/
 __pycache__/
 *.pyc
-.os_memory.json
+
+# Secrets
 api.txt
+
+# OS / Editor
 .DS_Store
-.ingested.json
-physics_db/
-sandbox/.agent_workspace/
 *.log
+
+# Generated data
+knowledge_base/
+physics_db/
+*.wav
+.os_memory.json
+.ingested.json
+
+# Test / scratch files
+sandbox/stress_test.py
+sandbox/test_voice.py
+sandbox/test_textual.py
+sandbox/.agent_workspace/
+sandbox/physics_db/
+sandbox/sandbox/
+sandbox/error.log
+sandbox/output.log
+sandbox/voice_scratch.wav
+
+# Keyword index (rebuilt at runtime)
+neural_find/keyword_index.json
+
+# Tasks data (user-specific)
+tasks.json
