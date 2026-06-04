@@ -33,3 +33,9 @@ neural_find/keyword_index.json
 
 # Tasks data (user-specific)
 tasks.json
+
+# Chronos
+.chronos_vault/
+
+# Sandbox
+sandbox/

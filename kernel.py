@@ -30,6 +30,16 @@ from voice.microphone_daemon import record_scratch_audio
 from voice.transcriber import transcribe_wav
 from kanban.board_layout import KanbanScreen
 from neural_find.searcher import semantic_search
+from vision.camera_daemon import capture_screen
+from vision.analyzer import analyze_image
+from headless.automation_agent import execute_web_automation
+from chronos.snapshot import save_checkpoint, init_vault, auto_checkpoint_dir
+from chronos.rewind import rollback_file
+from chronos.watcher import start_sandbox_watcher
+
+# Force working directory to the project root (where kernel.py lives)
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+os.chdir(PROJECT_ROOT)
 
 def get_api_key():
     key = os.environ.get("OPENROUTER_API_KEY", "").strip()
@@ -47,6 +57,28 @@ client = OpenRouter(
 
 BASE_DIR = os.getcwd()
 MEMORY_FILE = os.path.join(BASE_DIR, ".os_memory.json")
+
+def get_recent_code_context(base_dir=".") -> str:
+    recent_file = None
+    recent_time = 0
+    for root, dirs, files in os.walk(base_dir):
+        if ".git" in root or "venv" in root or "__pycache__" in root:
+            continue
+        for f in files:
+            if f.endswith(('.py', '.js', '.jsx', '.ts', '.tsx', '.html', '.css')):
+                full_path = os.path.join(root, f)
+                mtime = os.path.getmtime(full_path)
+                if mtime > recent_time:
+                    recent_time = mtime
+                    recent_file = full_path
+    if recent_file:
+        try:
+            with open(recent_file, "r") as f:
+                content = f.read()
+            return f"--- {os.path.basename(recent_file)} ---\n{content}"
+        except Exception:
+            pass
+    return ""
 
 class KernelOS(App):
     SCREENS = {"kanban": KanbanScreen, "browser": BrowserScreen}
@@ -151,11 +183,11 @@ class KernelOS(App):
             with VerticalScroll(id="chat_scroll"):
                 yield Static(id="main_chat")
             with Vertical(id="sidebar"):
-                yield Static("CPU Usage", id="cpu_usage")
+                yield Static("CPU:", id="cpu_usage")
                 yield ProgressBar(total=100, show_eta=False, id="cpu_bar")
-                yield Static("RAM Usage", id="ram_usage")
+                yield Static("RAM:", id="ram_usage")
                 yield ProgressBar(total=100, show_eta=False, id="ram_bar")
-                yield Static("Disk Usage", id="disk_usage")
+                yield Static("Disk:", id="disk_usage")
                 yield ProgressBar(total=100, show_eta=False, id="disk_bar")
                 yield Static("Fetching Live News...", id="news_panel")
                 yield Static("FOCUS MODE", id="focus_panel", classes="hidden")
@@ -163,7 +195,12 @@ class KernelOS(App):
         yield Footer()
 
     def on_mount(self):
+        init_vault()
+
         os.makedirs("sandbox", exist_ok=True)
+        sandbox_path = os.path.join(os.getcwd(), "sandbox")
+        start_sandbox_watcher(sandbox_path)
+        
         self.title = os.getcwd()
         self.system_status = {"cpu_alert": False, "last_recorded_cpu": 0, "last_recorded_ram": 0}
         
@@ -214,13 +251,13 @@ class KernelOS(App):
         self.system_status["last_recorded_cpu"] = cpu
         self.system_status["last_recorded_ram"] = ram
         
-        self.query_one("#cpu_usage", Static).update(f"CPU Usage: {cpu}%")
+        self.query_one("#cpu_usage", Static).update(f"CPU: {cpu}%")
         self.query_one("#cpu_bar", ProgressBar).progress = cpu
         
-        self.query_one("#ram_usage", Static).update(f"RAM Usage: {ram}%")
+        self.query_one("#ram_usage", Static).update(f"RAM: {ram}%")
         self.query_one("#ram_bar", ProgressBar).progress = ram
         
-        self.query_one("#disk_usage", Static).update(f"Disk Usage: {disk}%")
+        self.query_one("#disk_usage", Static).update(f"Disk: {disk}%")
         self.query_one("#disk_bar", ProgressBar).progress = disk
         
         alert = self.query_one("#cpu_alert", Static)
@@ -236,7 +273,7 @@ class KernelOS(App):
         chat_scroll.border_title = f"[{self.agent_color}]{self.agent_title}[/{self.agent_color}]"
         chat_scroll.styles.border = ("double", self.agent_color)
         
-        if self.agent_title in ["Conversational Agent", "Web Agent"]:
+        if self.agent_title in ["Conversational Agent", "Web Agent", "Omni-Sight"]:
             chat_content = Group(f"[{self.agent_color}]{self.last_command}[/{self.agent_color}]", RichMarkdown(self.last_output))
             main_chat.update(chat_content)
         else:
@@ -327,6 +364,49 @@ class KernelOS(App):
             self.last_output = f"\n{results_text}\n"
             self.update_chat_panel()
             return
+        
+        elif user_input.lower().startswith("look"):
+            parts = user_input.split(maxsplit=2)
+            delay = 0
+            query = "Describe what is on my screen and identify any obvious errors, code, or context."
+            
+            if len(parts) > 1 and parts[1].isdigit():
+                delay = int(parts[1])
+                if len(parts) > 2:
+                    query = parts[2]
+            else:
+                if len(user_input[4:].strip()) > 0:
+                    query = user_input[4:].strip()
+
+            self.agent_title = "Omni-Sight"
+            self.agent_color = "#FF00FF"
+            
+            if delay > 0:
+                self.last_output = f"\n**👁️ Omni-Sight Active:** Capturing screen in {delay} seconds...\n"
+            else:
+                self.last_output = f"\n**👁️ Omni-Sight Active:** Capturing screen state...\n"
+            
+            self.update_chat_panel()
+            self.run_vision_pipeline(query, delay)
+            return
+
+        elif user_input.lower().startswith("headless "):
+            objective = user_input[9:].strip()
+            self.agent_title = "Headless Engine"
+            self.agent_color = "#00FF00"
+            self.last_output = f"\n[bold green]🌐 Headless Engine Active:[/bold green] Initializing Playwright environment...\n"
+            self.update_chat_panel()
+            self.run_automation_pipeline(objective)
+            return
+        
+        elif user_input.lower().startswith("rewind "):
+            target_file = user_input[7:].strip()
+            self.agent_title = "Chronos Engine"
+            self.agent_color = "#0088FF"
+            diff_result = rollback_file(target_file)
+            self.last_output = f"\n[bold blue]⏳ Chronos Rewind Executed:[/bold blue]\n{diff_result}\n"
+            self.update_chat_panel()
+            return 
 
         if user_input:
             self.process_request(user_input)
@@ -594,6 +674,10 @@ class KernelOS(App):
         returncode = 0
 
         if "TERMINAL" in intent_category:
+            # Chronos: auto-checkpoint sandbox before execution
+            sandbox_path = os.path.join(os.getcwd(), "sandbox")
+            auto_checkpoint_dir(sandbox_path)
+            
             res = execute_terminal_agent(user_input, current_dir, visible_files, recent_history, client, self._append_output)
             self.agent_title = res["agent_title"]
             self.agent_color = res["agent_color"]
@@ -665,6 +749,42 @@ class KernelOS(App):
         except Exception as e:
             def show_error():
                 self.last_output = f"\n[bold red]✘ Voice Error:[/bold red] {e}\n"
+                self.update_chat_panel()
+            self.call_from_thread(show_error)
+
+    @work(thread=True)
+    def run_vision_pipeline(self, query: str, delay: int):
+        try:
+            img_path = capture_screen(delay=delay)
+            context = get_recent_code_context(BASE_DIR)
+            text_result = analyze_image(img_path, client, query, code_context=context)
+            def update_ui():
+                self.last_output += f"\n**✔ Vision Analysis:**\n\n{text_result}\n"
+                self.update_chat_panel()
+            self.call_from_thread(update_ui)
+        except Exception as e:
+            def show_error():
+                self.last_output += f"\n**✘ Omni-Sight Error:**\n\n{e}\n"
+                self.update_chat_panel()
+            self.call_from_thread(show_error)
+
+    @work(thread=True)
+    def run_automation_pipeline(self, objective: str):
+        try:
+            def _append_output(text):
+                self.last_output += text
+                self.call_from_thread(self.update_chat_panel)
+                
+            result = execute_web_automation(objective, client, _append_output)
+            
+            def finalize_ui():
+                self.last_output += f"\n[bold cyan]✔ Task Complete:[/bold cyan] {result['output']}\n"
+                self.update_chat_panel()
+                
+            self.call_from_thread(finalize_ui)
+        except Exception as e:
+            def show_error():
+                self.last_output += f"\n[bold red]✘ Headless Error:[/bold red] {e}\n"
                 self.update_chat_panel()
             self.call_from_thread(show_error)
 
