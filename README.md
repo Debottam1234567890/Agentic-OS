@@ -51,11 +51,14 @@ Agentic OS comes with a suite of specialized agents that handle specific tasks a
 4. **System-Level Dependencies (Linux / Codespaces):**
    Some features rely on native C libraries that `pip` cannot install:
    ```bash
-   # Required for the Voice Agent (sounddevice needs PortAudio)
-   sudo apt-get install -y libportaudio2
+   # Update apt package lists first
+   sudo apt-get update
+   
+   # Required for the Voice Agent
+   sudo apt-get install -y portaudio19-dev
 
    # Required for Playwright browsers to launch
-   sudo playwright install-deps
+   playwright install-deps
    ```
    > On **macOS**, use `brew install portaudio` instead. Playwright deps install automatically on macOS.
 
