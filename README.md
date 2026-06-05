@@ -48,14 +48,25 @@ Agentic OS comes with a suite of specialized agents that handle specific tasks a
    playwright install
    ```
 
-4. **API Keys:**
+4. **System-Level Dependencies (Linux / Codespaces):**
+   Some features rely on native C libraries that `pip` cannot install:
+   ```bash
+   # Required for the Voice Agent (sounddevice needs PortAudio)
+   sudo apt-get install -y libportaudio2
+
+   # Required for Playwright browsers to launch
+   sudo playwright install-deps
+   ```
+   > On **macOS**, use `brew install portaudio` instead. Playwright deps install automatically on macOS.
+
+5. **API Keys:**
    Export your OpenRouter API key as an environment variable:
    ```bash
    export OPENROUTER_API_KEY="your-api-key"
    ```
    *Alternatively*, you can create a file called `api.txt` in the root folder and paste your API key there.
 
-5. **Boot the OS:**
+6. **Boot the OS:**
    ```bash
    python3 kernel.py
    ```
