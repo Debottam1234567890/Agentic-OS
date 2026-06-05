@@ -9,14 +9,20 @@ Welcome to **Agentic OS**—a terminal-based operating system powered by multi-m
 
 Agentic OS provides a centralized dashboard featuring a built-in terminal agent, web researcher, headless browser automator, computer vision analyzer, voice transcriber, and live data telemetry.
 
-## ✨ Core Features
+## ✨ Meet the Agents & Features
 
-*   🖥️ **The Terminal Agent**: An autonomous coder running in your `sandbox/` directory. It can write Python scripts, build architecture maps, patch files, and execute bash commands dynamically.
+Agentic OS comes with a suite of specialized agents that handle specific tasks automatically:
+
+*   🖥️ **The Terminal Agent**: An autonomous coding assistant. It can write Python scripts, build architecture maps, patch files, and execute bash commands dynamically right in your directory.
 *   🌐 **The Web Agent**: Fetches and synthesizes information directly from DuckDuckGo and proxy APIs to answer questions grounded in real-world data without hallucinations.
-*   🎭 **Headless Browser Daemon**: Uses Playwright to autonomously navigate websites, click buttons, extract data, and fill forms.
-*   👁️ **Vision & Camera**: Includes integrated computer vision using OpenCV to take snapshots, analyze screen states, or read physical documents through your webcam.
-*   🎙️ **Voice Control**: Hit the shortcut, speak your command, and Agentic OS will transcribe the audio (via a local Whisper or fast API fallback) and execute your instruction.
-*   ⏱️ **Chronos Snapshot & Rewind**: An automatic Git-like snapshot engine. Did an agent mess up your codebase? Just type `rewind` to instantly restore the `sandbox/` state to 5 minutes ago.
+*   🎭 **Headless Browser Agent**: Uses Playwright to autonomously navigate websites, click buttons, extract data, and fill forms.
+*   👁️ **Omni-Sight (Vision Agent)**: Includes integrated computer vision using OpenCV to take snapshots, analyze screen states, or read physical documents through your webcam.
+*   🎙️ **Voice Agent**: Hit the shortcut, speak your command, and Agentic OS will transcribe the audio (via a local Whisper or fast API fallback) and execute your instruction.
+*   🤖 **Conversational Agent**: For generic chatting, reasoning, and context-aware dialogue when a specialized agent isn't needed.
+*   🧠 **RAG Search Agent**: Performs local semantic searches over your codebase and documents to find exact references instantly.
+
+**Additional Subsystems:**
+*   ⏱️ **Chronos Snapshot & Rewind**: An automatic Git-like snapshot engine. Did an agent mess up your codebase? Just type `rewind` to instantly restore your directory state to 5 minutes ago.
 *   📈 **Data Galaxy & Market Telemetry**: Features interactive visualizations of live data. Maps abstract syntax trees into node graphs or pulls live stock metrics.
 *   📰 **Real-Time News Feed**: Uses `xml.etree.ElementTree` to scrape live Google News RSS feeds continuously without wasting API tokens.
 
@@ -64,9 +70,7 @@ The `kernel.py` acts as the main execution loop. It intercepts all user commands
 *   `chronos/`: The file-watching subsystem that zips your sandbox state on every file mutation.
 *   `vision/ & voice/`: Multi-modal bridges to local hardware (camera and mic).
 
-> **Note:** The codebase has been aggressively minified (stripped of comments and blank lines) to optimize read speeds for LLM operations. 
 
----
 
 ## 🎨 UI & Aesthetics
 
@@ -81,4 +85,4 @@ Agentic OS was explicitly designed to *wow*.
 
 Created as an experimental foray into local, agent-driven operating systems. Built using Python, Textual, Rich, Playwright, and Pyfiglet.
 
-**User Safety:** The terminal agent is hard-coded to *only* execute modifications inside the `/sandbox` folder to prevent accidental system destruction.
+**User Safety Warning:** The agents in Agentic OS operate natively in whatever directory you run `kernel.py` from. It is **highly recommended** that you run Agentic OS inside a dedicated `sandbox/` folder rather than your core system directories to prevent accidental file destruction or overwrites by the autonomous terminal agent.

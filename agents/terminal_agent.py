@@ -3,12 +3,9 @@ import subprocess
 import json
 import ast
 from prompts import TERMINAL_AGENT_PROMPT
-def get_sandbox_dir(current_dir):
-    if os.path.basename(os.path.normpath(current_dir)) == 'sandbox':
-        return current_dir
-    return os.path.join(current_dir, 'sandbox')
+
 def map_architecture(current_dir: str, target_path: str='.'):
-    sandbox_dir = get_sandbox_dir(current_dir)
+    sandbox_dir = current_dir
     guardrail_list = ['.git', '__pycache__', 'node_modules', '.venv', 'venv']
     architecture_map = []
     if target_path == '.':
@@ -50,7 +47,7 @@ def map_architecture(current_dir: str, target_path: str='.'):
         return 'No Python architecture found.'
     return final_output
 def write_file(current_dir, filename: str, content: str):
-    sandbox_dir = get_sandbox_dir(current_dir)
+    sandbox_dir = current_dir
     file_path = os.path.join(sandbox_dir, filename) if not os.path.isabs(filename) else filename
     if not file_path.startswith(sandbox_dir):
         return 'Access Denied: Cannot write outside the sandbox.'
@@ -61,7 +58,7 @@ def write_file(current_dir, filename: str, content: str):
     except Exception as e:
         return f'Error writing file: {str(e)}'
 def read_file(current_dir, filename: str):
-    sandbox_dir = get_sandbox_dir(current_dir)
+    sandbox_dir = current_dir
     file_path = os.path.join(sandbox_dir, filename) if not os.path.isabs(filename) else filename
     if not file_path.startswith(sandbox_dir):
         return 'Access Denied: Cannot read outside the sandbox.'
@@ -71,7 +68,7 @@ def read_file(current_dir, filename: str):
     except Exception as e:
         return f'Error: File not found or cannot be read. {str(e)}'
 def execute_bash(current_dir, command):
-    sandbox_dir = get_sandbox_dir(current_dir)
+    sandbox_dir = current_dir
     if command.startswith('python3 ') or command.startswith('python '):
         filename = command.split(' ')[1]
         compile_process = subprocess.run(f"cd '{sandbox_dir}' && python3 -m py_compile {filename}", shell=True, capture_output=True, text=True)
@@ -84,7 +81,7 @@ def execute_bash(current_dir, command):
     else:
         return f'STDERR:\n{process.stderr}'
 def search_codebase(current_dir, query: str):
-    sandbox_dir = get_sandbox_dir(current_dir)
+    sandbox_dir = current_dir
     guardrail_list = ['.git', '__pycache__', 'node_modules', '.venv', 'venv']
     match_results = []
     for root, dirs, files in os.walk(sandbox_dir):
@@ -106,7 +103,7 @@ def search_codebase(current_dir, query: str):
         return f"No matches found for '{query}' in the codebase."
     return '\n'.join(match_results)
 def patch_file(current_dir, file_path: str, start_line: int, end_line: int, replacement_code: str):
-    sandbox_dir = get_sandbox_dir(current_dir)
+    sandbox_dir = current_dir
     if not os.path.isabs(file_path):
         file_path = os.path.join(sandbox_dir, file_path)
     if not file_path.startswith(sandbox_dir):
@@ -136,8 +133,7 @@ def patch_file(current_dir, file_path: str, start_line: int, end_line: int, repl
         f.writelines(modified_lines)
     return f'Success: File patched from line {start_line} to {end_line}.'
 def execute_terminal_agent(user_input: str, current_dir: str, visible_files: str, recent_history: str, client, update_callback) -> dict:
-    sandbox_dir = get_sandbox_dir(current_dir)
-    os.makedirs(sandbox_dir, exist_ok=True)
+    sandbox_dir = current_dir
     messages = [{'role': 'system', 'content': TERMINAL_AGENT_PROMPT + f'\n\nCurrent Directory: {current_dir}\nVisible Files: {visible_files}\nRecent System History: \n{recent_history}'}, {'role': 'user', 'content': user_input}]
     step_counter = 0
     final_message = 'Task aborted: Maximum reasoning steps reached.'

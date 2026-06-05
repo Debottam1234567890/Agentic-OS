@@ -110,9 +110,7 @@ class KernelOS(App):
         yield Footer()
     def on_mount(self):
         init_vault()
-        os.makedirs('sandbox', exist_ok=True)
-        sandbox_path = os.path.join(os.getcwd(), 'sandbox')
-        start_sandbox_watcher(sandbox_path)
+        start_sandbox_watcher(os.getcwd())
         self.title = os.getcwd()
         self.system_status = {'cpu_alert': False, 'last_recorded_cpu': 0, 'last_recorded_ram': 0}
         self.agent_title = 'System Boot'
@@ -168,6 +166,25 @@ class KernelOS(App):
                 self.query_one(Input).focus()
             except Exception:
                 pass
+            
+            onboarding_msg = (
+                "\n\n[bold #38BDF8]Welcome to Agentic OS. Here is your quickstart guide:[/bold #38BDF8]\n\n"
+                "• **Natural Language**: Just type what you want to do (e.g. 'Write a python script that...')\n"
+                "• **browse <url>**: Autonomously load and read a webpage.\n"
+                "• **stock <ticker>**: Launch native charts for a stock (e.g., 'stock AAPL').\n"
+                "• **look**: Use the camera to see what's on your screen and debug errors.\n"
+                "• **listen**: Start the microphone to give voice commands.\n"
+                "• **headless <task>**: Spin up an invisible browser to interact with a site.\n"
+                "• **rewind <file>**: Rollback a file to its previous state.\n"
+                "• **map core**: Visualize the Python codebase syntax tree.\n"
+                "• **galaxy**: Build a 3D semantic data galaxy.\n"
+                "• **focus <minutes>**: Enter distraction-free mode.\n"
+                "• **lofi start**: Play ambient background music.\n"
+                "• **tasks**: Open the Kanban board.\n"
+            )
+            self.last_output += onboarding_msg
+            self.update_chat_panel()
+
         self.app.call_from_thread(finalize_boot)
     def update_telemetry(self):
         cpu = psutil.cpu_percent()
@@ -500,8 +517,7 @@ class KernelOS(App):
         stderr_val = ''
         returncode = 0
         if 'TERMINAL' in intent_category:
-            sandbox_path = os.path.join(os.getcwd(), 'sandbox')
-            auto_checkpoint_dir(sandbox_path)
+            auto_checkpoint_dir(os.getcwd())
             res = execute_terminal_agent(user_input, current_dir, visible_files, recent_history, client, self._append_output)
             self.agent_title = res['agent_title']
             self.agent_color = res['agent_color']
