@@ -35,7 +35,10 @@ from vision.analyzer import analyze_image
 from headless.automation_agent import execute_web_automation
 from chronos.snapshot import save_checkpoint, init_vault, auto_checkpoint_dir
 from chronos.rewind import rollback_file
+from data_galaxy.pipeline import build_galaxy
+from data_galaxy.galaxy_screen import GalaxyScreen
 from chronos.watcher import start_sandbox_watcher
+from stock_market.ui import StockScreen
 
 # Force working directory to the project root (where kernel.py lives)
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -85,17 +88,17 @@ class KernelOS(App):
     CSS = """
     Screen {
         layout: vertical;
-        background: #0A0A1A;
+        background: #0F172A; /* Slate 900 */
     }
     Header {
         dock: top;
         height: 3;
-        background: #000000;
-        color: #00FFCC;
-        border-bottom: heavy #FF00FF;
+        background: #020617;
+        color: #38BDF8; /* Sky 400 */
+        border-bottom: round #1E293B;
     }
     #cpu_alert {
-        background: #FF0055;
+        background: #EF4444; /* Red 500 */
         color: #FFFFFF;
         text-align: center;
         text-style: bold italic;
@@ -113,51 +116,72 @@ class KernelOS(App):
     #chat_scroll {
         width: 3fr;
         height: 1fr;
-        border: double #00FFCC;
-        background: #0A0A1A;
+        border: round #38BDF8;
+        background: #0F172A;
+        padding: 0 1;
+        transition: border 0.5s;
+    }
+    #chat_scroll.system-ready {
+        border: round #10B981; /* Emerald 500 */
     }
     #main_chat {
         height: auto;
         padding: 1;
-        background: #0A0A1A;
+        background: #0F172A;
     }
     #sidebar {
         width: 1fr;
         height: 1fr;
-        border: heavy #FF00FF;
+        border: round #818CF8; /* Indigo 400 */
         padding: 1 2;
-        background: #110011;
+        background: #1E293B; /* Slate 800 */
+        transition: border 0.5s, background 0.5s;
+    }
+    #sidebar.warning-mode {
+        border: round #EF4444;
+        background: #450A0A;
+    }
+    #sidebar.warning-mode Static {
+        color: #FCA5A5;
+        transition: color 0.5s;
+    }
+    #sidebar.warning-mode ProgressBar > .bar--bar {
+        color: #EF4444;
     }
     #sidebar Static {
         margin-top: 1;
         text-style: bold;
-        color: #FFFF00;
+        color: #E2E8F0; /* Slate 200 */
     }
     #sidebar ProgressBar {
         margin-bottom: 2;
     }
     #sidebar ProgressBar > .bar--bar {
-        color: #00FF00;
+        color: #10B981; /* Emerald 500 */
+    }
+    #sidebar ProgressBar > .bar--background {
+        background: #334155; /* Slate 700 */
     }
     Input {
         dock: bottom;
-        border-top: double #00FFCC;
-        background: #000000;
-        color: #FF00FF;
+        border-top: round #38BDF8;
+        background: #020617;
+        color: #F8FAFC;
     }
     #news_panel {
         height: 1fr;
-        border-top: solid #00FFCC;
+        border-top: dashed #475569;
         margin-top: 1;
-        padding: 1;
-        color: #FFFFFF;
+        padding: 1 0;
+        color: #F8FAFC;
+        overflow-y: auto;
     }
     #focus_panel {
         height: 1fr;
-        border-top: solid #FF00FF;
+        border-top: solid #F472B6;
         margin-top: 1;
         padding: 1;
-        color: #FF0055;
+        color: #F472B6;
         text-align: center;
         text-style: bold;
     }
@@ -171,7 +195,7 @@ class KernelOS(App):
     Button {
         margin: 0 1;
     }
-    LoFiWidget { border-top: solid #00FFCC; margin-top: 1; padding: 1; height: auto; }
+    LoFiWidget { border-top: dashed #475569; margin-top: 1; padding: 1; height: auto; }
     #lofi_controls { height: auto; align: center middle; margin-top: 1; }
     #lofi_header { text-align: center; }
     """
@@ -209,28 +233,45 @@ class KernelOS(App):
         self.last_command = "System Initialization."
         self.audio_system = AudioController()
 
-        ascii_banner = pyfiglet.figlet_format("AGENTIC OS", font="slant")
-        escaped_banner = escape(ascii_banner)
-        self.last_output = f"[bold #00FFCC]{escaped_banner}[/bold #00FFCC]\n"
-        
+        chat_scroll = self.query_one("#chat_scroll")
+        chat_scroll.styles.opacity = 0.0
+        chat_scroll.styles.animate("opacity", value=1.0, duration=2.0)
+
+        self.last_output = ""
         self.update_telemetry()
-        self.set_interval(2.0, self.update_telemetry)
-        self.update_chat_panel()
+        self.set_interval(0.5, self.update_telemetry)
         
         self.run_boot_sequence()
         self.remaining_focus_secs = 0
         self.focus_timer = None
         self.fetch_news()
 
-    @work
+    @work(thread=True)
     async def run_boot_sequence(self):
         import asyncio
+        import pyfiglet
+        from rich.markup import escape
+        
+        ascii_banner = pyfiglet.figlet_format("AGENTIC OS", font="slant")
+        escaped_banner = escape(ascii_banner)
+        self.last_output = f"[bold #00FFCC]{escaped_banner}[/bold #00FFCC]\n"
+        self.app.call_from_thread(self.update_chat_panel)
+        
         system_check_strs = ["Loading kernel", "Loading AI engine", "Loading memory logs", "Checking CPU registers", "Initializing cognitive arrays"]
+        spinners = ['/', '-', '\\', '|']
         
         for phase in system_check_strs:
+            for i in range(4):
+                spinner = spinners[i % len(spinners)]
+                temp_output = self.last_output + f"[{'#FFFF00'}]{spinner}[/{'#FFFF00'}] {phase}\n"
+                def update_spin(t=temp_output):
+                    self.query_one("#main_chat", Static).update(f"[{self.agent_color}]{self.last_command}[/{self.agent_color}]\n{t}")
+                self.app.call_from_thread(update_spin)
+                await asyncio.sleep(0.1)
+                
             self.last_output += f"[{'#00FF00'}]✔[/{'#00FF00'}] {phase}\n"
-            self.update_chat_panel()
-            await asyncio.sleep(1)
+            self.app.call_from_thread(self.update_chat_panel)
+            await asyncio.sleep(0.2)
             
         self.system_memory = []
         if os.path.exists(MEMORY_FILE):
@@ -240,9 +281,19 @@ class KernelOS(App):
         else:
             init_msg = f"[dim #FFFF00]Memory Module: No previous memory found. Starting fresh.[/dim #FFFF00]"
             
-        self.last_output += init_msg + f"\n\n[bold {'#00FF00'}] ✔ SYSTEM READY ✔ [/bold {'#00FF00'}]"
-        self.update_chat_panel()
-        self.query_one(Input).focus()
+        self.last_output += init_msg + f"\n\n[bold #00FF00] ✔ SYSTEM READY ✔ [/bold #00FF00]"
+        self.app.call_from_thread(self.update_chat_panel)
+        
+        def finalize_boot():
+            chat = self.query_one("#chat_scroll")
+            chat.add_class("system-ready")
+            self.set_timer(1.0, lambda: chat.remove_class("system-ready"))
+            try:
+                self.query_one(Input).focus()
+            except Exception:
+                pass
+            
+        self.app.call_from_thread(finalize_boot)
 
     def update_telemetry(self):
         cpu = psutil.cpu_percent()
@@ -261,10 +312,14 @@ class KernelOS(App):
         self.query_one("#disk_bar", ProgressBar).progress = disk
         
         alert = self.query_one("#cpu_alert", Static)
+        sidebar = self.query_one("#sidebar")
+        
         if cpu > 85:
             alert.add_class("visible")
+            sidebar.add_class("warning-mode")
         else:
             alert.remove_class("visible")
+            sidebar.remove_class("warning-mode")
 
     def update_chat_panel(self):
         chat_scroll = self.query_one("#chat_scroll", VerticalScroll)
@@ -399,6 +454,20 @@ class KernelOS(App):
             self.run_automation_pipeline(objective)
             return
         
+        elif user_input.lower().strip() == "galaxy":
+            self.agent_title = "Data Galaxy Engine"
+            self.last_output = "\n[bold cyan]🔭 Building the Data Galaxy...[/bold cyan]\nMapping vector spaces. Please wait."
+            self.update_chat_panel()
+            
+            # Build the coordinates in the background (or block slightly since it's fast)
+            success = build_galaxy()
+            if success:
+                self.app.push_screen(GalaxyScreen())
+            else:
+                self.last_output = "\n[red]Failed to build Data Galaxy. Not enough files.[/red]\n"
+                self.update_chat_panel()
+            return
+
         elif user_input.lower().startswith("rewind "):
             target_file = user_input[7:].strip()
             self.agent_title = "Chronos Engine"
@@ -406,7 +475,29 @@ class KernelOS(App):
             diff_result = rollback_file(target_file)
             self.last_output = f"\n[bold blue]⏳ Chronos Rewind Executed:[/bold blue]\n{diff_result}\n"
             self.update_chat_panel()
-            return 
+            return
+
+        elif user_input.lower().strip() == "map core":
+            from ast_graph.ui import MapScreen
+            self.agent_title = "System Cartographer"
+            self.last_output = "\n[bold cyan]🗺️ Rendering Abstract Syntax Tree...[/bold cyan]\n"
+            self.push_screen(MapScreen())
+            self.update_chat_panel()
+            return
+            
+        elif user_input.lower().startswith("stock "):
+            ticker = user_input[6:].strip().upper()
+            from stock_market.mpl_ui import launch_stock_window
+            
+            self.agent_title = "Wall Street Engine"
+            self.last_output = f"\n[bold green]📈 Launching native charting engine for {ticker}...[/bold green]\n"
+            self.update_chat_panel()
+            
+            # Suspend the terminal UI so matplotlib can safely launch a Mac GUI window
+            with self.suspend():
+                launch_stock_window(ticker)
+                
+            return
 
         if user_input:
             self.process_request(user_input)
@@ -592,11 +683,11 @@ class KernelOS(App):
         lines = raw.splitlines()
         formatted_lines = []
         section_styles = {
-            "WORLD": ("[bold #00FFCC]🌍 WORLD NEWS[/bold #00FFCC]", "#AAFFEE"),
-            "LOCAL": (f"[bold #FFFF00]📍 LOCAL NEWS — {country}[/bold #FFFF00]", "#FFFF99"),
-            "SPORTS": ("[bold #FF6600]🏆 SPORTS[/bold #FF6600]", "#FFB266"),
+            "WORLD": ("[bold #38BDF8]🌍 WORLD NEWS[/bold #38BDF8]", "#BAE6FD"),
+            "LOCAL": (f"[bold #F472B6]📍 LOCAL NEWS — {country}[/bold #F472B6]", "#FBCFE8"),
+            "SPORTS": ("[bold #A78BFA]🏆 SPORTS[/bold #A78BFA]", "#DDD6FE"),
         }
-        current_color = "#FFFFFF"
+        current_color = "#E2E8F0"
         for line in lines:
             upper = line.strip().upper()
             if upper.startswith("WORLD"):
@@ -616,9 +707,12 @@ class KernelOS(App):
         news_markup = "\n".join(formatted_lines)
 
         def update_news():
-            self.query_one("#news_panel", Static).update(
-                f"[bold #00FFCC]📡 Live News Feed[/bold #00FFCC]\n\n{news_markup}"
-            )
+            try:
+                self.query_one("#news_panel", Static).update(
+                    f"[bold #38BDF8]📡 Live News Feed[/bold #38BDF8]\n\n{news_markup}"
+                )
+            except Exception:
+                pass
         self.call_from_thread(update_news)
 
 
