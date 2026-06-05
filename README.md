@@ -49,7 +49,11 @@ Agentic OS comes with a suite of specialized agents that handle specific tasks a
    ```
 
 4. **API Keys:**
-   Create a file called `api.txt` in the root folder and paste your OpenRouter/Proxy API key.
+   Export your OpenRouter API key as an environment variable:
+   ```bash
+   export OPENROUTER_API_KEY="your-api-key"
+   ```
+   *Alternatively*, you can create a file called `api.txt` in the root folder and paste your API key there.
 
 5. **Boot the OS:**
    ```bash

@@ -169,18 +169,18 @@ class KernelOS(App):
             
             onboarding_msg = (
                 "\n\n[bold #38BDF8]Welcome to Agentic OS. Here is your quickstart guide:[/bold #38BDF8]\n\n"
-                "• **Natural Language**: Just type what you want to do (e.g. 'Write a python script that...')\n"
-                "• **browse <url>**: Autonomously load and read a webpage.\n"
-                "• **stock <ticker>**: Launch native charts for a stock (e.g., 'stock AAPL').\n"
-                "• **look**: Use the camera to see what's on your screen and debug errors.\n"
-                "• **listen**: Start the microphone to give voice commands.\n"
-                "• **headless <task>**: Spin up an invisible browser to interact with a site.\n"
-                "• **rewind <file>**: Rollback a file to its previous state.\n"
-                "• **map core**: Visualize the Python codebase syntax tree.\n"
-                "• **galaxy**: Build a 3D semantic data galaxy.\n"
-                "• **focus <minutes>**: Enter distraction-free mode.\n"
-                "• **lofi start**: Play ambient background music.\n"
-                "• **tasks**: Open the Kanban board.\n"
+                "• [bold]Natural Language[/bold]: Just type what you want to do (e.g. 'Write a python script that...')\n"
+                "• [bold]browse <url>[/bold]: Autonomously load and read a webpage.\n"
+                "• [bold]stock <ticker>[/bold]: Launch native charts for a stock (e.g., 'stock AAPL').\n"
+                "• [bold]look[/bold]: Use the camera to see what's on your screen and debug errors.\n"
+                "• [bold]listen[/bold]: Start the microphone to give voice commands.\n"
+                "• [bold]headless <task>[/bold]: Spin up an invisible browser to interact with a site.\n"
+                "• [bold]rewind <file>[/bold]: Rollback a file to its previous state.\n"
+                "• [bold]map core[/bold]: Visualize the Python codebase syntax tree.\n"
+                "• [bold]galaxy[/bold]: Build a 3D semantic data galaxy.\n"
+                "• [bold]focus <minutes>[/bold]: Enter distraction-free mode.\n"
+                "• [bold]lofi start[/bold]: Play ambient background music.\n"
+                "• [bold]tasks[/bold]: Open the Kanban board.\n"
             )
             self.last_output += onboarding_msg
             self.update_chat_panel()
