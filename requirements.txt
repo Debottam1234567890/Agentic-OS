@@ -21,3 +21,4 @@ watchdog>=3.0.0
 watchfiles>=0.21.0
 pypdf2>=3.0.1
 scikit-learn>=1.0.0
+lxml>=4.9.0
