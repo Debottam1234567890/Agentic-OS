@@ -28,7 +28,7 @@ def fetch_and_clean_html(url: str, client) -> str:
         clean_input = final_md.replace('[', '(').replace(']', ')')
         SYSTEM_PROMPT = "You are a terminal UI renderer. Read the following raw scraped text and restructure it into a highly readable, clean document optimized for a CLI. CRITICAL: You must aggressively use Rich markup tags (e.g., [bold cyan], [dim], [#FF00FF], [italic yellow]) to color-code headers, highlight key terms, and distinguish interactive elements. Remove all useless boilerplate, cookie notices, and navigation noise. IMPORTANT RULE: NEVER use literal '[' or ']' brackets for anything OTHER than Rich markup tags. For citations, use parentheses like (1) instead of [1]. For links, just write 'Link Text (URL)' instead of Markdown brackets. Output ONLY the formatted text with Rich tags."
         try:
-            response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter/free'), messages=[{'role': 'system', 'content': SYSTEM_PROMPT}, {'role': 'user', 'content': f'Render this HTML content: {clean_input}'}], stream=False)
+            response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'google/gemma-4-31b-it:free'), messages=[{'role': 'system', 'content': SYSTEM_PROMPT}, {'role': 'user', 'content': f'Render this HTML content: {clean_input}'}], stream=False)
             structured_ui = response.choices[0].message.content.strip()
             structured_ui = re.sub('<think>.*?</think>', '', structured_ui, flags=re.DOTALL).strip()
             return sanitize_rich_markup(structured_ui)

@@ -375,7 +375,7 @@ class KernelOS(App):
     def process_journal_async(self, message: str):
         prompt = 'Read the following journal entry and output EXACTLY ONE category tag enclosed in brackets. Choose from: [Academics], [Hardware], [Milestone], [Reflection]. Output absolutely nothing else.'
         try:
-            response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter/free'), messages=[{'role': 'system', 'content': prompt}, {'role': 'user', 'content': message}], stream=False)
+            response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'google/gemma-4-31b-it:free'), messages=[{'role': 'system', 'content': prompt}, {'role': 'user', 'content': message}], stream=False)
             tag = response.choices[0].message.content.strip()
             if not tag.startswith('['):
                 tag = '[Reflection]'
@@ -407,7 +407,7 @@ class KernelOS(App):
     def generate_quiz(self, topic: str):
         prompt = f'Generate a single, difficult multiple-choice question about: {topic}. You MUST return strict JSON matching this schema exactly:\n{{"question": "...", "options": {{"A": "...", "B": "...", "C": "...", "D": "..."}}, "correct": "<A, B, C, or D>", "explanation": "..."}}\nCRITICAL: Randomize which letter is the correct answer. Do NOT always make it A.\nReturn ONLY the JSON string. Do not use markdown blocks like ```json.'
         try:
-            response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter/free'), messages=[{'role': 'user', 'content': prompt}], stream=False)
+            response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'google/gemma-4-31b-it:free'), messages=[{'role': 'user', 'content': prompt}], stream=False)
             raw = response.choices[0].message.content.strip()
             if raw.startswith('```json'):
                 raw = raw[7:-3].strip()
@@ -472,15 +472,15 @@ class KernelOS(App):
             except Exception:
                 return ['Headline unavailable']
         world = fetch_category('https://news.google.com/rss/headlines/section/topic/WORLD')
-        local = fetch_category('https://news.google.com/rss/headlines/section/geo/Global')
+        tech = fetch_category('https://news.google.com/rss/headlines/section/topic/TECHNOLOGY')
         sports = fetch_category('https://news.google.com/rss/headlines/section/topic/SPORTS')
         formatted = []
         formatted.append('[bold #38BDF8]🌍 WORLD NEWS[/bold #38BDF8]')
         for title in world:
             formatted.append(f'[#BAE6FD]• {title}[/#BAE6FD]')
         formatted.append('')
-        formatted.append('[bold #F472B6]📍 LOCAL NEWS[/bold #F472B6]')
-        for title in local:
+        formatted.append('[bold #F472B6]💻 TECH NEWS[/bold #F472B6]')
+        for title in tech:
             formatted.append(f'[#FBCFE8]• {title}[/#FBCFE8]')
         formatted.append('')
         formatted.append('[bold #A78BFA]🏆 SPORTS[/bold #A78BFA]')
