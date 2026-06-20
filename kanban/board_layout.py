@@ -45,10 +45,8 @@ class KanbanScreen(Screen):
             self.query_one('#done_col').mount(TaskCard(task_text, 'done'))
     def action_add_task(self):
         input_widget = self.query_one('#add_task_input')
-        if input_widget.has_class('-visible'):
-            input_widget.remove_class('-visible')
-        else:
-            input_widget.add_class('-visible')
+        input_widget.display = not input_widget.display
+        if input_widget.display:
             input_widget.focus()
     @on(Input.Submitted, '#add_task_input')
     def on_new_task(self, event: Input.Submitted):
@@ -59,7 +57,7 @@ class KanbanScreen(Screen):
             save_tasks(tasks)
             self.refresh_board()
         event.input.value = ''
-        event.input.remove_class('-visible')
+        event.input.display = False
         event.stop()
         self.focus()
     def move_task(self, card: TaskCard, direction: int):
