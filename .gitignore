@@ -39,3 +39,7 @@ tasks.json
 
 # Sandbox
 sandbox/
+build/
+dist/
+*.zip
+*.spec
