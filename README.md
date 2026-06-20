@@ -27,8 +27,8 @@ u gotta do this:
 3. set up a venv cuz python will complain otherwise `python3 -m venv venv` and `source venv/bin/activate`
 4. install my crazy deps: `pip install -r requirements.txt` and `playwright install`
 5. FOR LINUX U NEED: `sudo apt-get update` then `sudo apt-get install -y portaudio19-dev` and `playwright install-deps` (if ur on mac just `brew install portaudio`)
-6. set ur api key: `export OPENROUTER_API_KEY="ur-key-here"` or just put it in a `api.txt` file (fyi: since the hack club ai api was tweaking/down, i switched everything to use `openrouter/free` by default so everyone can use it for free!)
-7. optionally pick a custom model: `export AGENTIC_OS_MODEL="anthropic/claude-3-opus"` (defaults to openrouter/free if u leave it blank)
+6. set ur api key: `export OPENROUTER_API_KEY="ur-key-here"` or just put it in a `api.txt` file (fyi: since the hack club ai api was tweaking/down, i switched everything to use `openrouter:free` by default so everyone can use it for free!)
+7. optionally pick a custom model: `export AGENTIC_OS_MODEL="anthropic/claude-3-opus"` (defaults to openrouter:free if u leave it blank)
 8. start it up: `python3 kernel.py`
 
 ## architecture idk
