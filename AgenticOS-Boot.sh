@@ -8,10 +8,14 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# Clone the repo if it doesn't exist
 if [ ! -d "Agentic-OS" ]; then
     echo "Cloning the Agentic-OS repository..."
     git clone https://github.com/Debottam1234567890/Agentic-OS.git
+else
+    echo "Updating the Agentic-OS repository..."
+    cd Agentic-OS
+    git pull
+    cd ..
 fi
 
 # Enter the repository
