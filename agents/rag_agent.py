@@ -6,16 +6,28 @@ if not hasattr(np, 'float_'):
     np.float_ = np.float64
 import chromadb
 from PyPDF2 import PdfReader
-try:
-    chroma_client = chromadb.PersistentClient(path='./physics_db')
-    collection = chroma_client.get_or_create_collection(name='physics_vault')
-except Exception as e:
-    import shutil
-    print(f"Detected incompatible ChromaDB schema. Wiping old database: {e}")
-    if os.path.exists('./physics_db'):
-        shutil.rmtree('./physics_db')
-    chroma_client = chromadb.PersistentClient(path='./physics_db')
-    collection = chroma_client.get_or_create_collection(name='physics_vault')
+import sqlite3
+
+def check_and_clear_incompatible_db(db_path):
+    sqlite_file = os.path.join(db_path, "chroma.sqlite3")
+    if os.path.exists(sqlite_file):
+        try:
+            conn = sqlite3.connect(sqlite_file)
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(collections)")
+            columns = [row[1] for row in cursor.fetchall()]
+            conn.close()
+            # If the database has the 'topic' column, it was created by a newer version of ChromaDB (e.g. 1.5.9)
+            if "topic" in columns:
+                import shutil
+                shutil.rmtree(db_path)
+                print(f"Wiped incompatible newer ChromaDB schema at {db_path}")
+        except Exception:
+            pass
+
+check_and_clear_incompatible_db('./physics_db')
+chroma_client = chromadb.PersistentClient(path='./physics_db')
+collection = chroma_client.get_or_create_collection(name='physics_vault')
 LEDGER_FILE = '.ingested.json'
 def _load_ledger():
     if os.path.exists(LEDGER_FILE):
