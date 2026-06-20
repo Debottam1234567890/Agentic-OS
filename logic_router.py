@@ -11,7 +11,7 @@ def route_intent(user_input: str, client) -> str:
     _diag(f'[DIAG] User input: {user_input!r}')
     _diag('=' * 80)
     try:
-        response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter/free'), messages=[{'role': 'system', 'content': ROUTER_PROMPT}, {'role': 'user', 'content': user_input}], stream=False)
+        response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter:free'), messages=[{'role': 'system', 'content': ROUTER_PROMPT}, {'role': 'user', 'content': user_input}], stream=False)
         _diag(f'[DIAG] Raw response type: {type(response)}')
         _diag(f'[DIAG] Raw response repr: {response!r}')
         choices = getattr(response, 'choices', None)

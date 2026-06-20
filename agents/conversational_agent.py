@@ -16,7 +16,7 @@ def stream_conversational_agent(user_input: str, client, update_callback, system
                 messages.append({'role': 'user', 'content': log['user_intent']})
                 messages.append({'role': 'assistant', 'content': log['stdout']})
         messages.append({'role': 'user', 'content': user_input})
-    response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter/free'), messages=messages, stream=True)
+    response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter:free'), messages=messages, stream=True)
     full_output = ''
     for chunk in response:
         if chunk.choices[0].delta.content is not None:
