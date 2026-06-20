@@ -14,7 +14,7 @@ def scrape_web(query: str) -> str:
     except Exception as e:
         return f'Error during search: {e}'
 def stream_web_agent(user_input: str, client, set_output, append_output) -> dict:
-    query_response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter:free'), messages=[{'role': 'system', 'content': WEB_EXTRACTOR_PROMPT}, {'role': 'user', 'content': user_input}])
+    query_response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'qwen/qwen3-coder:free'), messages=[{'role': 'system', 'content': WEB_EXTRACTOR_PROMPT}, {'role': 'user', 'content': user_input}])
     search_query = query_response.choices[0].message.content.strip()
     live_data = scrape_web(search_query)
     if 'No search results found' in live_data:
@@ -23,7 +23,7 @@ def stream_web_agent(user_input: str, client, set_output, append_output) -> dict
         return {'agent_title': 'Web Agent', 'agent_color': '#FFFF00', 'command': f'Web Search: {search_query}', 'output': err_msg}
     base_msg = f'**[X-Ray Scraper Data]:**\n> {live_data}\n\n---\n\n**[Agent Synthesis]:**\n'
     set_output(base_msg)
-    response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter:free'), messages=[{'role': 'system', 'content': WEB_SYNTHESIZER_PROMPT}, {'role': 'user', 'content': f"User Intent: {user_input}\n\nLive Web Data: {live_data}\n\nAnswer the user's intent using ONLY the live web data provided."}], stream=True)
+    response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'qwen/qwen3-coder:free'), messages=[{'role': 'system', 'content': WEB_SYNTHESIZER_PROMPT}, {'role': 'user', 'content': f"User Intent: {user_input}\n\nLive Web Data: {live_data}\n\nAnswer the user's intent using ONLY the live web data provided."}], stream=True)
     full_output = base_msg
     for chunk in response:
         if chunk.choices[0].delta.content is not None:
