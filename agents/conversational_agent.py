@@ -19,8 +19,9 @@ def stream_conversational_agent(user_input: str, client, update_callback, system
     response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'google/gemma-4-31b-it:free'), messages=messages, stream=True)
     full_output = ''
     for chunk in response:
-        if chunk.choices[0].delta.content is not None:
-            text_chunk = chunk.choices[0].delta.content
-            full_output += text_chunk
-            update_callback(text_chunk)
+        if hasattr(chunk, 'choices') and len(chunk.choices) > 0:
+            if chunk.choices[0].delta.content is not None:
+                text_chunk = chunk.choices[0].delta.content
+                full_output += text_chunk
+                update_callback(text_chunk)
     return {'agent_title': 'Conversational Agent', 'agent_color': '#FF00FF', 'command': 'Conversational Query', 'output': full_output}
