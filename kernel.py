@@ -24,8 +24,7 @@ from voice.microphone_daemon import record_scratch_audio
 from voice.transcriber import transcribe_wav
 from kanban.board_layout import KanbanScreen
 from neural_find.searcher import semantic_search
-from vision.camera_daemon import capture_screen
-from vision.analyzer import analyze_image
+
 from headless.automation_agent import execute_web_automation
 from chronos.snapshot import save_checkpoint, init_vault, auto_checkpoint_dir
 from chronos.rewind import rollback_file
@@ -179,7 +178,7 @@ class KernelOS(App):
                 "• [bold]Natural Language[/bold]: Just type what you want to do (e.g. 'Write a python script that...')\n"
                 "• [bold]browse <url>[/bold]: Autonomously load and read a webpage.\n"
                 "• [bold]stock <ticker>[/bold]: Launch native charts for a stock (e.g., 'stock AAPL').\n"
-                "• [bold]look[/bold]: Use the camera to see what's on your screen and debug errors.\n"
+
                 "• [bold]listen[/bold]: Start the microphone to give voice commands.\n"
                 "• [bold]headless <task>[/bold]: Spin up an invisible browser to interact with a site.\n"
                 "• [bold]rewind <file>[/bold]: Rollback a file to its previous state.\n"
@@ -298,25 +297,7 @@ class KernelOS(App):
             self.last_output = f'\n{results_text}\n'
             self.update_chat_panel()
             return
-        elif user_input.lower().startswith('look'):
-            parts = user_input.split(maxsplit=2)
-            delay = 0
-            query = 'Describe what is on my screen and identify any obvious errors, code, or context.'
-            if len(parts) > 1 and parts[1].isdigit():
-                delay = int(parts[1])
-                if len(parts) > 2:
-                    query = parts[2]
-            elif len(user_input[4:].strip()) > 0:
-                query = user_input[4:].strip()
-            self.agent_title = 'Omni-Sight'
-            self.agent_color = '#FF00FF'
-            if delay > 0:
-                self.last_output = f'\n**👁️ Omni-Sight Active:** Capturing screen in {delay} seconds...\n'
-            else:
-                self.last_output = f'\n**👁️ Omni-Sight Active:** Capturing screen state...\n'
-            self.update_chat_panel()
-            self.run_vision_pipeline(query, delay)
-            return
+
         elif user_input.lower().startswith('headless '):
             objective = user_input[9:].strip()
             self.agent_title = 'Headless Engine'
@@ -580,21 +561,7 @@ class KernelOS(App):
                 self.last_output = f'\n[bold red]✘ Voice Error:[/bold red] {e}\n'
                 self.update_chat_panel()
             self.call_from_thread(show_error)
-    @work(thread=True)
-    def run_vision_pipeline(self, query: str, delay: int):
-        try:
-            img_path = capture_screen(delay=delay)
-            context = get_recent_code_context(BASE_DIR)
-            text_result = analyze_image(img_path, client, query, code_context=context)
-            def update_ui():
-                self.last_output += f'\n**✔ Vision Analysis:**\n\n{text_result}\n'
-                self.update_chat_panel()
-            self.call_from_thread(update_ui)
-        except Exception as e:
-            def show_error():
-                self.last_output += f'\n**✘ Omni-Sight Error:**\n\n{e}\n'
-                self.update_chat_panel()
-            self.call_from_thread(show_error)
+
     @work(thread=True)
     def run_automation_pipeline(self, objective: str):
         try:

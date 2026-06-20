@@ -9,7 +9,7 @@ dude literally this thing is packed
 - **Terminal Agent:** an autonomous coding bot that writes python, fixes bugs n patches files right in ur folder.
 - **Web Agent (`browse <url>`):** it actually browses the web using duckduckgo and proxy apis so it doesnt hallucinate 
 - **Headless Browser (`headless <task>`):** invisible playwright bot that clicks buttons and fills out forms for u LMAO
-- **Omni-Sight (`look`):** takes a snap of ur screen to debug stuff physically using computer vision !!
+
 - **Voice Agent (`listen`):** talk to it and whisper transcribes everything u say and executes it
 - **Conversational Agent:** just a chill bot for reasoning
 - **Sprint Board (`tasks`):** a fully functional Kanban board inside the terminal. Press `a` to add, `h`/`l` or arrow keys to move tasks, `d` or backspace to delete, and `Esc` to go back!
