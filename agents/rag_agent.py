@@ -1,10 +1,21 @@
 import os
 import json
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+import numpy as np
+if not hasattr(np, 'float_'):
+    np.float_ = np.float64
 import chromadb
 from PyPDF2 import PdfReader
-chroma_client = chromadb.PersistentClient(path='./physics_db')
-collection = chroma_client.get_or_create_collection(name='physics_vault')
+try:
+    chroma_client = chromadb.PersistentClient(path='./physics_db')
+    collection = chroma_client.get_or_create_collection(name='physics_vault')
+except Exception as e:
+    import shutil
+    print(f"Detected incompatible ChromaDB schema. Wiping old database: {e}")
+    if os.path.exists('./physics_db'):
+        shutil.rmtree('./physics_db')
+    chroma_client = chromadb.PersistentClient(path='./physics_db')
+    collection = chroma_client.get_or_create_collection(name='physics_vault')
 LEDGER_FILE = '.ingested.json'
 def _load_ledger():
     if os.path.exists(LEDGER_FILE):

@@ -1,3 +1,7 @@
+import numpy as np
+if not hasattr(np, 'float_'):
+    np.float_ = np.float64
+
 from browser.engine import fetch_and_clean_html
 import json
 import os
