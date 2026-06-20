@@ -38,4 +38,6 @@ ui looks super hacker-y with neon purples and blue dark mode 🎨
 
 **WARNING:** The AI agent operates in your current working directory! If you want to use a sandbox, just `cd` into an empty folder before running `python3 /path/to/kernel.py` so it doesn't accidentally wipe your whole system LOL 😭
 
+**There might be api error and be careful while using headless mode dont enter bot heavy bots and there might be errors in tui rendering so try again in that case.**
+
 anyways hope u guys like it!!!
