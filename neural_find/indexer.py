@@ -2,6 +2,26 @@ import os
 import json
 import math
 import chromadb
+import sqlite3
+
+def check_and_clear_incompatible_db(db_path):
+    sqlite_file = os.path.join(db_path, "chroma.sqlite3")
+    if os.path.exists(sqlite_file):
+        try:
+            conn = sqlite3.connect(sqlite_file)
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(collections)")
+            columns = [row[1] for row in cursor.fetchall()]
+            conn.close()
+            # If the database has the 'topic' column, it was created by a newer version of ChromaDB (e.g. 1.5.9)
+            if "topic" in columns:
+                import shutil
+                shutil.rmtree(db_path)
+                print(f"Wiped incompatible newer ChromaDB schema at {db_path}")
+        except Exception:
+            pass
+
+check_and_clear_incompatible_db('./knowledge_base')
 db_client = chromadb.PersistentClient(path='./knowledge_base')
 collection = db_client.get_or_create_collection(name='local_files')
 IGNORE_DIRS = {'.git', '__pycache__', 'venv', 'node_modules', '.idea', 'knowledge_base'}
