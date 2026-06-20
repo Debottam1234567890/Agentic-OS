@@ -51,9 +51,23 @@ def get_api_key():
     return key
 client = OpenRouter(api_key=get_api_key(), server_url='https://ai.hackclub.com/proxy/v1')
 original_send = client.chat.send
+import time
+
 def _fallback_send(*args, **kwargs):
     fallback = 'google/gemma-4-31b-it:free'
     is_stream = kwargs.get('stream', False)
+    
+    def get_mock_response():
+        class MockMessage:
+            content = "[Error: Upstream provider is temporarily rate-limited or unavailable. Please wait a moment.]"
+            tool_calls = []
+        class MockChoice:
+            message = MockMessage()
+            delta = MockMessage()
+        class MockResponse:
+            choices = [MockChoice()]
+        return MockResponse()
+
     if is_stream:
         def _gen():
             try:
@@ -61,15 +75,21 @@ def _fallback_send(*args, **kwargs):
                     yield chunk
             except Exception:
                 kwargs['model'] = fallback
-                for chunk in original_send(*args, **kwargs):
-                    yield chunk
+                try:
+                    for chunk in original_send(*args, **kwargs):
+                        yield chunk
+                except Exception:
+                    yield get_mock_response()
         return _gen()
     else:
         try:
             return original_send(*args, **kwargs)
         except Exception:
             kwargs['model'] = fallback
-            return original_send(*args, **kwargs)
+            try:
+                return original_send(*args, **kwargs)
+            except Exception:
+                return get_mock_response()
 client.chat.send = _fallback_send
 BASE_DIR = os.getcwd()
 MEMORY_FILE = os.path.join(BASE_DIR, '.os_memory.json')
