@@ -12,6 +12,7 @@ dude literally this thing is packed
 - **Omni-Sight (`look`):** takes a snap of ur screen to debug stuff physically using computer vision !!
 - **Voice Agent (`listen`):** talk to it and whisper transcribes everything u say and executes it
 - **Conversational Agent:** just a chill bot for reasoning
+- **Sprint Board (`tasks`):** a fully functional Kanban board inside the terminal. Press `a` to add, `h`/`l` or arrow keys to move tasks, `d` or backspace to delete, and `Esc` to go back!
 - **RAG Search (`search`):** local semantic search over ur codebase using chromadb so u can chat w ur files
 
 ## extra crazy stuff i added
@@ -35,6 +36,6 @@ u gotta do this:
 everything is built on **Textual** TUI framework so its crazy fast. `kernel.py` intercepts ur cmds and routes them using `logic_router.py` to all the agents. 
 ui looks super hacker-y with neon purples and blue dark mode 🎨 
 
-**WARNING:** plz use a `sandbox/` folder cuz the ai might accidentally wipe ur system if u let it run wild LOL 😭
+**WARNING:** The AI agent operates in your current working directory! If you want to use a sandbox, just `cd` into an empty folder before running `python3 /path/to/kernel.py` so it doesn't accidentally wipe your whole system LOL 😭
 
 anyways hope u guys like it!!!

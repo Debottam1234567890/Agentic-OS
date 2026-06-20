@@ -10,8 +10,17 @@ def execute_web_automation(user_input: str, client, update_callback) -> dict:
     final_output = {'output': 'Task failed to complete within step limits.'}
     try:
         while step_counter < 50:
-            response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'google/gemma-4-31b-it:free'), messages=messages, max_tokens=5000, stream=False)
-            raw_content = response.choices[0].message.content.strip()
+            # Retry logic to handle 'Provider returned error' or rate limits
+            for attempt in range(3):
+                try:
+                    response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'google/gemma-4-31b-it:free'), messages=messages, max_tokens=5000, stream=False)
+                    raw_content = response.choices[0].message.content.strip()
+                    break
+                except Exception as e:
+                    if attempt == 2:
+                        raise e
+                    import time
+                    time.sleep(1)
             cleaned = raw_content
             if cleaned.startswith('```json'):
                 cleaned = cleaned[7:]
