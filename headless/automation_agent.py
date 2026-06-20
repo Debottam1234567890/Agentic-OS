@@ -13,7 +13,7 @@ def execute_web_automation(user_input: str, client, update_callback) -> dict:
             # Retry logic to handle 'Provider returned error' or rate limits
             for attempt in range(3):
                 try:
-                    response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'google/gemma-4-31b-it:free'), messages=messages, max_tokens=5000, stream=False)
+                    response = client.chat.send(model=os.environ.get('AGENTIC_OS_MODEL', 'openrouter/free'), messages=messages, max_tokens=5000, stream=False)
                     raw_content = response.choices[0].message.content.strip()
                     break
                 except Exception as e:
