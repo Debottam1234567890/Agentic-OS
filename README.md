@@ -1,106 +1,39 @@
-<div align="center">
-  <h1>🌌 Agentic OS</h1>
-  <p><strong>A Next-Generation AI Command Center built in Textual</strong></p>
-</div>
+# yo whats up 🌌 Agentic OS 🌌
 
-<br>
+ok so tbh i just wanted a terminal that actually DOES stuff instead of me typing forever lol. 
 
-Welcome to **Agentic OS**—a terminal-based operating system powered by multi-modal AI agents. Engineered to be completely autonomous, highly resilient, and beautifully designed with sleek cyberpunk/hacker aesthetics. 
+Agentic OS is my next gen ai command center built in Textual!! basically it has all these sick ai agents that run directly in ur terminal and see ur screen n stuff
 
-Agentic OS provides a centralized dashboard featuring a built-in terminal agent, web researcher, headless browser automator, computer vision analyzer, voice transcriber, and live data telemetry.
+## omg the features 🤯
+dude literally this thing is packed
+- **Terminal Agent:** an autonomous coding bot that writes python, fixes bugs n patches files right in ur folder.
+- **Web Agent (`browse <url>`):** it actually browses the web using duckduckgo and proxy apis so it doesnt hallucinate 
+- **Headless Browser (`headless <task>`):** invisible playwright bot that clicks buttons and fills out forms for u LMAO
+- **Omni-Sight (`look`):** takes a snap of ur screen to debug stuff physically using computer vision !!
+- **Voice Agent (`listen`):** talk to it and whisper transcribes everything u say and executes it
+- **Conversational Agent:** just a chill bot for reasoning
+- **RAG Search (`search`):** local semantic search over ur codebase using chromadb so u can chat w ur files
 
-## ✨ Meet the Agents & Features
+## extra crazy stuff i added
+- **Chronos Snapshot (`rewind`):** basically if the ai bricks ur code u just type rewind and it goes back 5 mins like a time machine!!
+- **Data Galaxy (`galaxy`):** builds a 3d map of ur syntax trees 
+- **Wall street engine (`stock AAPL`):** pulls live stock charts right in the terminal
+- **News feed:** live google news rss scrape
 
-Agentic OS comes with a suite of specialized agents that handle specific tasks automatically:
+## how to run this bad boy 🚀
+u gotta do this:
+1. `git clone https://github.com/Debottam1234567890/Agentic-OS.git`
+2. `cd Agentic-OS`
+3. set up a venv cuz python will complain otherwise `python3 -m venv venv` and `source venv/bin/activate`
+4. install my crazy deps: `pip install -r requirements.txt` and `playwright install`
+5. FOR LINUX U NEED: `sudo apt-get update` then `sudo apt-get install -y portaudio19-dev` and `playwright install-deps` (if ur on mac just `brew install portaudio`)
+6. set ur api key: `export OPENROUTER_API_KEY="ur-key-here"` or just put it in a `api.txt` file
+7. start it up: `python3 kernel.py`
 
-*   🖥️ **The Terminal Agent**: An autonomous coding assistant. It can write Python scripts, build architecture maps, patch files, and execute bash commands dynamically right in your directory.
-*   🌐 **The Web Agent**: Fetches and synthesizes information directly from DuckDuckGo and proxy APIs to answer questions grounded in real-world data without hallucinations.
-*   🎭 **Headless Browser Agent**: Uses Playwright to autonomously navigate websites, click buttons, extract data, and fill forms.
-*   👁️ **Omni-Sight (Vision Agent)**: Includes integrated computer vision using OpenCV to take snapshots, analyze screen states, or read physical documents through your webcam.
-*   🎙️ **Voice Agent**: Hit the shortcut, speak your command, and Agentic OS will transcribe the audio (via a local Whisper or fast API fallback) and execute your instruction.
-*   🤖 **Conversational Agent**: For generic chatting, reasoning, and context-aware dialogue when a specialized agent isn't needed.
-*   🧠 **RAG Search Agent**: Performs local semantic searches over your codebase and documents to find exact references instantly.
+## architecture idk
+everything is built on **Textual** TUI framework so its crazy fast. `kernel.py` intercepts ur cmds and routes them using `logic_router.py` to all the agents. 
+ui looks super hacker-y with neon purples and blue dark mode 🎨 
 
-**Additional Subsystems:**
-*   ⏱️ **Chronos Snapshot & Rewind**: An automatic Git-like snapshot engine. Did an agent mess up your codebase? Just type `rewind` to instantly restore your directory state to 5 minutes ago.
-*   📈 **Data Galaxy & Market Telemetry**: Features interactive visualizations of live data. Maps abstract syntax trees into node graphs or pulls live stock metrics.
-*   📰 **Real-Time News Feed**: Uses `xml.etree.ElementTree` to scrape live Google News RSS feeds continuously without wasting API tokens.
+**WARNING:** plz use a `sandbox/` folder cuz the ai might accidentally wipe ur system if u let it run wild LOL 😭
 
----
-
-## 🚀 Installation & Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Debottam1234567890/Agentic-OS.git
-   cd Agentic-OS
-   ```
-
-2. **Set up your Virtual Environment:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install Dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   playwright install
-   ```
-
-4. **System-Level Dependencies (Linux / Codespaces):**
-   Some features rely on native C libraries that `pip` cannot install:
-   ```bash
-   # Update apt package lists first
-   sudo apt-get update
-   
-   # Required for the Voice Agent
-   sudo apt-get install -y portaudio19-dev
-
-   # Required for Playwright browsers to launch
-   playwright install-deps
-   ```
-   > On **macOS**, use `brew install portaudio` instead. Playwright deps install automatically on macOS.
-
-5. **API Keys:**
-   Export your OpenRouter API key as an environment variable:
-   ```bash
-   export OPENROUTER_API_KEY="your-api-key"
-   ```
-   *Alternatively*, you can create a file called `api.txt` in the root folder and paste your API key there.
-
-6. **Boot the OS:**
-   ```bash
-   python3 kernel.py
-   ```
-
----
-
-## 🛠️ Architecture Overview
-
-The system is built entirely on the **Textual** TUI framework, offering native macOS-level performance straight from the terminal. 
-
-The `kernel.py` acts as the main execution loop. It intercepts all user commands, parses the intent using `logic_router.py`, and dispatches the instruction to one of several specialized agents.
-
-*   `agents/`: Contains the conversational AI, the terminal code-execution loop, and the RAG (Retrieval-Augmented Generation) agent.
-*   `browser/`: Handles raw HTML fetching and DOM parsing.
-*   `headless/`: Implements the Playwright daemon for true browser interaction.
-*   `chronos/`: The file-watching subsystem that zips your sandbox state on every file mutation.
-*   `vision/ & voice/`: Multi-modal bridges to local hardware (camera and mic).
-
-
-
-## 🎨 UI & Aesthetics
-
-Agentic OS was explicitly designed to *wow*.
-*   **Vibrant Syntax Highlighting:** Utilizes Rich for beautiful markdown rendering.
-*   **Dynamic Telemetry:** The sidebar features live progress bars for CPU, RAM, and Disk space alongside the live news.
-*   **Custom Styling:** Incorporates sleek dark modes, HSL tailored neon colors (`#A78BFA` purples, `#38BDF8` blues), and dynamic animations. 
-
----
-
-## 📜 License & Acknowledgements
-
-Created as an experimental foray into local, agent-driven operating systems. Built using Python, Textual, Rich, Playwright, and Pyfiglet.
-
-**User Safety Warning:** The agents in Agentic OS operate natively in whatever directory you run `kernel.py` from. It is **highly recommended** that you run Agentic OS inside a dedicated `sandbox/` folder rather than your core system directories to prevent accidental file destruction or overwrites by the autonomous terminal agent.
+anyways hope u guys like it!!!
