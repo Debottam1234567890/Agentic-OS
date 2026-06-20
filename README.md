@@ -28,7 +28,7 @@ u gotta do this:
 4. install my crazy deps: `pip install -r requirements.txt` and `playwright install`
 5. FOR LINUX U NEED: `sudo apt-get update` then `sudo apt-get install -y portaudio19-dev` and `playwright install-deps` (if ur on mac just `brew install portaudio`)
 6. get ur FREE api key from https://ai.hackclub.com and set it: `export OPENROUTER_API_KEY="ur-key-here"` or just paste it in a file called `api.txt` in the project folder
-7. optionally pick a custom model: `export AGENTIC_OS_MODEL="google/gemini-3.5-flash"` (defaults to `qwen/qwen3-coder:free` if u leave it blank — its free!!)
+7. optionally pick a custom model: `export AGENTIC_OS_MODEL="google/gemini-3.5-flash"` (defaults to `nvidia/nemotron-3-nano-30b-a3b:free` if u leave it blank — its free!!)
 8. start it up: `python3 kernel.py`
 
 ## architecture idk

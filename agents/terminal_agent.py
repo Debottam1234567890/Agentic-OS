@@ -140,13 +140,13 @@ def execute_terminal_agent(user_input: str, current_dir: str, visible_files: str
     last_execution_output = 'No commands were executed.'
     while step_counter < 40:
         if step_counter <= 10:
-            model=os.environ.get('AGENTIC_OS_MODEL', 'qwen/qwen3-coder:free')
+            model=os.environ.get('AGENTIC_OS_MODEL', 'nvidia/nemotron-3-nano-30b-a3b:free')
             update_callback(f'\n[dim cyan]*[Swarm Level 1: Qwen Active]*[/dim cyan]\n')
         elif step_counter <= 33:
-            model=os.environ.get('AGENTIC_OS_MODEL', 'qwen/qwen3-coder:free')
+            model=os.environ.get('AGENTIC_OS_MODEL', 'nvidia/nemotron-3-nano-30b-a3b:free')
             update_callback(f'\n[bold green]*[Swarm Level 2: Gemini Active]*[/bold green]\n')
         else:
-            model=os.environ.get('AGENTIC_OS_MODEL', 'qwen/qwen3-coder:free')
+            model=os.environ.get('AGENTIC_OS_MODEL', 'nvidia/nemotron-3-nano-30b-a3b:free')
             update_callback(f'\n[bold yellow]*[Swarm Level 3: Claude Active]*[/bold yellow]\n')
         response = client.chat.send(model=model, messages=messages, stream=False)
         raw_response = response.choices[0].message.content.strip()
