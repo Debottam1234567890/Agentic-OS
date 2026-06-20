@@ -6,9 +6,9 @@ from prompts import ROUTER_PROMPT
 
 # -- List of free models to try, in order, if the primary model fails or is rate-limited --
 FALLBACK_MODELS = [
-    'nvidia/nemotron-3-nano-30b-a3b:free',
+    'google/gemma-4-31b-it:free',
     'google/gemma-4-26b-a4b-it:free',
-    'nvidia/nemotron-3-nano-30b-a3b:free',
+    'google/gemma-4-31b-it:free',
     'openai/gpt-oss-20b:free',
 ]
 
