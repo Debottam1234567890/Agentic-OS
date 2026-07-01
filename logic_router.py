@@ -4,7 +4,7 @@ import re
 import time
 from prompts import ROUTER_PROMPT
 
-# -- List of free models to try, in order, if the primary model fails or is rate-limited --
+# -- List of free models to try, in order, if the primary model fails or is rate-limited --.
 FALLBACK_MODELS = [
     'google/gemma-4-31b-it:free',
     'google/gemma-4-26b-a4b-it:free',
